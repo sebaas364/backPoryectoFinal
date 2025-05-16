@@ -1,16 +1,20 @@
 package co.edu.unbosque.proyectoFinalC3.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import javax.management.relation.Role;
+import java.util.Objects;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,32 +26,50 @@ public class Usuario implements UserDetails {
 
 	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) Integer id;
 	private static final long serialVersionUID = -4615719286144010194L;
-	private String nombre;
-	@Column(unique = true)
-	private String correo;
 	@Column(unique = true)
 	private String username;
+	@Column(unique = true)
+	private String correo;
 	private String password;
+	@Enumerated(EnumType.STRING)
 	private Role role;
-
-	public Usuario() {
-		// TODO Auto-generated constructor stub
+	private boolean credentialsNonExpired;
+	private boolean enabled;
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Archivo> historial = new ArrayList<>();
+	
+	public enum Role {
+		USER, ADMIN
 	}
 
-	public Usuario(String nombre, String correo, String username, String password) {
+	public Usuario() {
+		this.credentialsNonExpired = false;
+		this.enabled = false;
+		this.role = Role.USER;
+	}
+	
+	public Usuario(String username, String password) {
 		super();
-		this.nombre = nombre;
-		this.correo = correo;
 		this.username = username;
 		this.password = password;
 	}
 
-	public Usuario(String nombre, String correo, String username, String password, Role role) {
-		this.nombre = nombre;
-		this.correo = correo;
+	public Usuario(String username, String password, Role role) {
 		this.username = username;
 		this.password = password;
 		this.role = role;
+	}
+
+	public Usuario(String username, String correo, String password, Role role, boolean credentialsNonExpired,
+			boolean enabled, List<Archivo> historial) {
+		super();
+		this.username = username;
+		this.correo = correo;
+		this.password = password;
+		this.role = role;
+		this.credentialsNonExpired = credentialsNonExpired;
+		this.enabled = enabled;
+		this.historial = historial;
 	}
 
 	@Override
@@ -55,37 +77,27 @@ public class Usuario implements UserDetails {
 		return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
 	}
 
-	public enum Role {
-		// colocar los roles que se necesiten.
-		USER, ADMIN
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Usuario other = (Usuario) obj;
+		return Objects.equals(id, other.id) && Objects.equals(password, other.password)
+				&& Objects.equals(username, other.username);
 	}
-
+	
 	@Override
 	public String getPassword() {
-		// TODO Auto-generated method stub
 		return password;
 	}
 
 	@Override
 	public String getUsername() {
-		// TODO Auto-generated method stub
 		return username;
-	}
-
-	public String getNombre() {
-		return nombre;
-	}
-
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
-	}
-
-	public String getCorreo() {
-		return correo;
-	}
-
-	public void setCorreo(String correo) {
-		this.correo = correo;
 	}
 
 	public Integer getId() {
@@ -96,6 +108,14 @@ public class Usuario implements UserDetails {
 		this.id = id;
 	}
 
+	public String getCorreo() {
+		return correo;
+	}
+
+	public void setCorreo(String correo) {
+		this.correo = correo;
+	}
+
 	public Role getRole() {
 		return role;
 	}
@@ -104,8 +124,28 @@ public class Usuario implements UserDetails {
 		this.role = role;
 	}
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
+	public boolean isCredentialsNonExpired() {
+		return credentialsNonExpired;
+	}
+
+	public void setCredentialsNonExpired(boolean credentialsNonExpired) {
+		this.credentialsNonExpired = credentialsNonExpired;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public List<Archivo> getHistorial() {
+		return historial;
+	}
+
+	public void setHistorial(List<Archivo> historial) {
+		this.historial = historial;
 	}
 
 	public void setUsername(String username) {
@@ -116,4 +156,11 @@ public class Usuario implements UserDetails {
 		this.password = password;
 	}
 
+	@Override
+	public String toString() {
+		return "Usuario [id=" + id + ", username=" + username + ", correo=" + correo + ", password=" + password
+				+ ", role=" + role + ", credentialsNonExpired=" + credentialsNonExpired + ", enabled=" + enabled
+				+ ", historial=" + historial + "]";
+	}
+	
 }
