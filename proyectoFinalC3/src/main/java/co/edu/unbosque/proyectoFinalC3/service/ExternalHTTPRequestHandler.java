@@ -46,4 +46,19 @@ public class ExternalHTTPRequestHandler {
 		return prettyJsonString;
 	}
 
+	public static String doPost(String url, String json) {
+
+		HttpRequest solicitud = HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofString(json))
+				.uri(URI.create(url)).header("Content-Type", "application/json").build();
+
+		HttpResponse<String> respuesta = null;
+		try {
+			respuesta = HTTP_CLIENT.send(solicitud, HttpResponse.BodyHandlers.ofString());
+		} catch (IOException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("doPost no funciono");
+		}
+		return respuesta.statusCode() + "\n" + respuesta.body();
+	}
 }
