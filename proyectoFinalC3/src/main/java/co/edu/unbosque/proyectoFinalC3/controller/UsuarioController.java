@@ -17,17 +17,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.unbosque.proyectoFinalC3.dto.UsuarioDTO;
 import co.edu.unbosque.proyectoFinalC3.service.UsuarioService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/usuario")
 @CrossOrigin(origins = { "*" })
+@SecurityRequirement(name = "bearerAuth")
 public class UsuarioController {
 
 	@Autowired
 	private UsuarioService usuarioService;
 
+	public UsuarioController() {
+		
+	}
+	
 	@PostMapping(path = "/createjson", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> createWithJSON(@RequestBody UsuarioDTO newUser) {
 		if (newUser.getUsername().contains("<") || newUser.getUsername().contains(">")) {

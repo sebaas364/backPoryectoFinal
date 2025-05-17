@@ -1,5 +1,6 @@
 package co.edu.unbosque.proyectoFinalC3.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,21 +20,18 @@ import co.edu.unbosque.proyectoFinalC3.security.JwtUtil;
 import co.edu.unbosque.proyectoFinalC3.service.UsuarioService;
 
 @RestController
-@RequestMapping("/autentificacion")
+@RequestMapping("/auth")
 @CrossOrigin(origins = { "*" })
 public class AuthController {
 
-	private final AuthenticationManager authenticationManager;
+	@Autowired
+	private AuthenticationManager authenticationManager;
 
-	private final JwtUtil jwtUtil;
+	@Autowired
+	private JwtUtil jwtUtil;
 
-	private final UsuarioService usuarioService;
-
-	public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UsuarioService usuarioService) {
-		this.authenticationManager = authenticationManager;
-		this.jwtUtil = jwtUtil;
-		this.usuarioService = usuarioService;
-	}
+	@Autowired
+	private UsuarioService usuarioService;
 
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody UsuarioDTO loginRequest) {
@@ -42,13 +40,12 @@ public class AuthController {
 					new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 			UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 			String jwt = jwtUtil.generateToken(userDetails);
-
 			String role = null;
 			if (userDetails instanceof Usuario) {
 				Usuario user = (Usuario) userDetails;
 				role = user.getRole().name();
 			}
-            return ResponseEntity.ok(new AuthResponse(jwt, role));
+			return ResponseEntity.ok(new AuthResponse(jwt, role));
 		} catch (AuthenticationException e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -69,8 +66,29 @@ public class AuthController {
 		}
 	}
 
-    private record AuthResponse(String token, String role) {
-    	
-    }
+	private static class AuthResponse {
+
+		private final String token;
+
+		private final String role;
+
+		public AuthResponse(String token) {
+			this.token = token;
+			this.role = null;
+		}
+
+		public AuthResponse(String token, String role) {
+			this.token = token;
+			this.role = role;
+		}
+
+		public String getToken() {
+			return token;
+		}
+
+		public String getRole() {
+			return role;
+		}
+	}
 
 }

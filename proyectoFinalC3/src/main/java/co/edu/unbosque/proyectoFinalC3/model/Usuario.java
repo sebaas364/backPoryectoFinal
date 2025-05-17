@@ -43,8 +43,8 @@ public class Usuario implements UserDetails {
 	}
 
 	public Usuario() {
-		this.credentialsNonExpired = false;
-		this.enabled = false;
+		this.credentialsNonExpired = true;
+		this.enabled = true;
 		this.role = Role.USER;
 	}
 	
