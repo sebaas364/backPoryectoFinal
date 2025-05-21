@@ -76,5 +76,11 @@ public class ArchivoService {
 		archivoRepository.delete(archivoOpt.get());
 		return 0;
 	}
+	
+	public int convert(ArchivoDTO archivodto) {
+		ExternalHTTPRequestHandler.convertApi(archivodto.getTipoArchivoOriginal(), archivodto.getTipoArchivoConvertido(), archivodto.getNombre(), null);
+		
+		return 1;
+	}
 
 }
