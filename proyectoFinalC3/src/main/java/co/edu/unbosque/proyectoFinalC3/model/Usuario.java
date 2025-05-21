@@ -20,6 +20,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "usuario")
 public class Usuario implements UserDetails {
@@ -36,6 +38,7 @@ public class Usuario implements UserDetails {
 	private boolean credentialsNonExpired;
 	private boolean enabled;
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<Archivo> historial = new ArrayList<>();
 	
 	public enum Role {

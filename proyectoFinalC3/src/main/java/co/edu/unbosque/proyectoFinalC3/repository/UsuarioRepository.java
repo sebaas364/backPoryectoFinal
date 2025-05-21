@@ -1,10 +1,12 @@
 package co.edu.unbosque.proyectoFinalC3.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 
 import co.edu.unbosque.proyectoFinalC3.model.Usuario;
+
 
 public interface UsuarioRepository extends CrudRepository<Usuario, Integer>{
 	
@@ -13,5 +15,7 @@ public interface UsuarioRepository extends CrudRepository<Usuario, Integer>{
 	public Optional<Usuario> findByUsername(String username);
 
 	public void deleteByUsername(String username); 
+	    
+    List<Usuario> findAll();
 	
 }

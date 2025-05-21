@@ -12,11 +12,13 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.unbosque.proyectoFinalC3.dto.UsuarioDTO;
 import co.edu.unbosque.proyectoFinalC3.model.Usuario;
 import co.edu.unbosque.proyectoFinalC3.security.JwtUtil;
+import co.edu.unbosque.proyectoFinalC3.service.EmailVerificationService;
 import co.edu.unbosque.proyectoFinalC3.service.UsuarioService;
 
 @RestController
@@ -32,6 +34,9 @@ public class AuthController {
 
 	@Autowired
 	private UsuarioService usuarioService;
+
+	@Autowired
+	private EmailVerificationService emailService;
 
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody UsuarioDTO loginRequest) {
@@ -55,14 +60,33 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@RequestBody UsuarioDTO registerRequest) {
-		if (usuarioService.findUsernameAlreadyTaken(registerRequest.getUsername())) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body("El nombre de usuario ya existe");
-		}
 		int result = usuarioService.create(registerRequest);
 		if (result == 0) {
 			return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado exitosamente");
 		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al registrar el usuario");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El nombre de usuario ya existe");
+		}
+	}
+
+	@PostMapping("/send-verification")
+	public ResponseEntity<?> sendVerificationCode(@RequestParam String email) {
+		try {
+			String verificationCode = emailService.sendVerificationCode(email);
+			usuarioService.saveVerificationCode(email, verificationCode);
+
+			return ResponseEntity.ok().body("Código de verificación enviado");
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body("Error al enviar el código: " + e.getMessage());
+		}
+	}
+
+	@PostMapping("/verify-code")
+	public ResponseEntity<?> verifyCode(@RequestParam String email, @RequestParam String code) {
+
+		if (usuarioService.validateVerificationCode(email, code)) {
+			return ResponseEntity.ok().body("Cuenta verificada con éxito");
+		} else {
+			return ResponseEntity.badRequest().body("Código inválido o expirado");
 		}
 	}
 

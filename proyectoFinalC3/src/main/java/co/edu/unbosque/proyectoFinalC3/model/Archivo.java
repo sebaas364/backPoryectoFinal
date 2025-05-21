@@ -2,6 +2,8 @@ package co.edu.unbosque.proyectoFinalC3.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -26,6 +28,7 @@ public class Archivo {
 	private boolean exito;
 	@ManyToOne
 	@JoinColumn(name = "usuario_id")
+    @JsonBackReference
 	private Usuario usuario;
 
 	public enum Tipo {

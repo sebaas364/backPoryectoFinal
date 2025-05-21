@@ -3,13 +3,21 @@ package co.edu.unbosque.proyectoFinalC3.service;
 import co.edu.unbosque.proyectoFinalC3.dto.UsuarioDTO;
 import co.edu.unbosque.proyectoFinalC3.model.Usuario;
 import co.edu.unbosque.proyectoFinalC3.repository.UsuarioRepository;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.hibernate.Hibernate;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioService {
@@ -22,6 +30,8 @@ public class UsuarioService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	private final Map<String, VerificationCode> verificationCodes = new HashMap<>();
 
 	public UsuarioService() {
 
@@ -49,14 +59,14 @@ public class UsuarioService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public List<UsuarioDTO> getAll() {
-		List<Usuario> entityList = (List<Usuario>) usuarioRepository.findAll();
-		List<UsuarioDTO> dtoList = new ArrayList<>();
-		entityList.forEach((entity) -> {
-			UsuarioDTO dto = modelMapper.map(entity, UsuarioDTO.class);
-			dtoList.add(dto);
+		List<Usuario> usuarios = usuarioRepository.findAll();
+		usuarios.forEach(u -> {
+			modelMapper.map(u, UsuarioDTO.class);
+			Hibernate.initialize(u.getHistorial());
 		});
-		return dtoList;
+		return usuarios.stream().map(u -> modelMapper.map(u, UsuarioDTO.class)).collect(Collectors.toList());
 	}
 
 	public int deleteById(Integer id) {
@@ -100,13 +110,14 @@ public class UsuarioService {
 		return 0;
 	}
 
+	@Transactional(readOnly = true)
 	public UsuarioDTO getById(Integer id) {
-		Optional<Usuario> found = usuarioRepository.findById(id);
-		if (found.isPresent()) {
-			return modelMapper.map(found.get(), UsuarioDTO.class);
-		} else {
-			return null;
+		Optional<Usuario> usuario = usuarioRepository.findById(id);
+		if (usuario.isPresent()) {
+			Hibernate.initialize(usuario.get().getHistorial());
+			return modelMapper.map(usuario.get(), UsuarioDTO.class);
 		}
+		return null;
 	}
 
 	public boolean findUsernameAlreadyTaken(String username) {
@@ -123,6 +134,44 @@ public class UsuarioService {
 			}
 		}
 		return 1;
+	}
+
+	public void saveVerificationCode(String email, String code) {
+		verificationCodes.put(email, new VerificationCode(code, LocalDateTime.now().plusMinutes(10)));
+	}
+
+	public boolean validateVerificationCode(String email, String inputCode) {
+		VerificationCode storedCode = verificationCodes.get(email);
+		if (storedCode == null) {
+			return false;
+		}
+		if (LocalDateTime.now().isAfter(storedCode.getExpirationTime())) {
+			verificationCodes.remove(email);
+			return false;
+		}
+		if (storedCode.getCode().equals(inputCode)) {
+			verificationCodes.remove(email);
+			return true;
+		}
+		return false;
+	}
+
+	private static class VerificationCode {
+		private final String code;
+		private final LocalDateTime expirationTime;
+
+		public VerificationCode(String code, LocalDateTime expirationTime) {
+			this.code = code;
+			this.expirationTime = expirationTime;
+		}
+
+		public String getCode() {
+			return code;
+		}
+
+		public LocalDateTime getExpirationTime() {
+			return expirationTime;
+		}
 	}
 
 }
