@@ -70,7 +70,7 @@ public class ExternalHTTPRequestHandler {
 		return respuesta.statusCode() + "\n" + respuesta.body();
 	}
 	
-	public static String convertApi(String fromFormat, String toFormat, String direccionArchivo, String direccionGuardado) {
+	public static String convertApi(String fromFormat, String toFormat, String direccionArchivo) {
 		
 		Config.setDefaultApiCredentials("secret_gbOobMcpbN7ucGqY");
 		
@@ -79,7 +79,7 @@ public class ExternalHTTPRequestHandler {
 			CompletableFuture<ConversionResult> resultado = ConvertApi.convert(fromFormat, toFormat,
 				    new Param("File", Paths.get(direccionArchivo)));
 			
-			resultado.get().saveFile(Paths.get(direccionGuardado)).get();
+			//resultado.get().saveFile(Paths.get(direccionGuardado)).get();
 			
 			ConversionResultFile file = resultado.get().getFile(0);
 			return file.getUrl();

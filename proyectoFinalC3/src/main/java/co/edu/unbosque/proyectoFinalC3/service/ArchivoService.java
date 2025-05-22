@@ -1,10 +1,16 @@
 package co.edu.unbosque.proyectoFinalC3.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import co.edu.unbosque.proyectoFinalC3.dto.ArchivoDTO;
+import co.edu.unbosque.proyectoFinalC3.dto.UsuarioDTO;
 import co.edu.unbosque.proyectoFinalC3.model.Archivo;
 import co.edu.unbosque.proyectoFinalC3.model.Usuario;
 import co.edu.unbosque.proyectoFinalC3.repository.ArchivoRepository;
@@ -13,6 +19,9 @@ import co.edu.unbosque.proyectoFinalC3.repository.UsuarioRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.convertapi.client.ConvertApi;
 
 @Service
 public class ArchivoService {
@@ -76,11 +85,43 @@ public class ArchivoService {
 		archivoRepository.delete(archivoOpt.get());
 		return 0;
 	}
-	
-	public int convert(ArchivoDTO archivodto) {
-		ExternalHTTPRequestHandler.convertApi(archivodto.getTipoArchivoOriginal(), archivodto.getTipoArchivoConvertido(), archivodto.getNombre(), null);
-		
-		return 1;
-	}
 
+	public List<ArchivoDTO> getAll() {
+		List<Archivo> entityList = (List<Archivo>) archivoRepository.findAll();
+		List<ArchivoDTO> dtoList = new ArrayList<>();
+		entityList.forEach((entity) -> {
+			ArchivoDTO dto = modelMapper.map(entity, ArchivoDTO.class);
+			dtoList.add(dto);
+		});
+		return dtoList;
+	}
+	public int validarConvertirArchivo(String archivo, String fromFormat, String toFormat) {
+		for (ArchivoDTO archivoDTO : getAll()) {
+			if(archivoDTO.getNombre().equals(archivo)) {
+				
+				// Guardar archivo temporalmente
+				Path archivoPath = Paths.get(archivoDTO.getNombre() );
+				String url = ExternalHTTPRequestHandler.convertApi(fromFormat, toFormat, archivoPath.toString());
+				if (url != null && !url.isEmpty()) {
+					return 0;
+				} else {
+					return 1;
+				}
+			}else {
+				return 0;
+			}
+		}
+		return 1;
+		
+	}
+	
+	public String obtenerURLArchivoConv(String archivo, String fromFormat, String toFormat) {
+		int resultado = validarConvertirArchivo(archivo,fromFormat,toFormat);
+		
+		if(resultado == 1) {
+			return ExternalHTTPRequestHandler.convertApi(fromFormat, toFormat, toFormat);
+		}else {
+			return null;
+		}
+	}
 }
