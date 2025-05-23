@@ -136,13 +136,20 @@
 			<artifactId>modelmapper</artifactId>
 			<version>3.1.1</version>
 		</dependency>
-		
+
 		<!-- MAIL  -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
-		
+
+		<!-- ConvertApi-->
+		<dependency>
+			<groupId>com.convertapi.client</groupId>
+			<artifactId>convertapi</artifactId>
+			<version>2.12</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

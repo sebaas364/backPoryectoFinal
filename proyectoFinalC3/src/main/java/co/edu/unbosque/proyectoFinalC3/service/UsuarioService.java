@@ -5,7 +5,6 @@ import co.edu.unbosque.proyectoFinalC3.model.Usuario;
 import co.edu.unbosque.proyectoFinalC3.repository.UsuarioRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +18,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Servicio para la gestión de usuarios en el sistema.
+ * <p>
+ * Esta clase contiene la lógica de negocio para operaciones CRUD de usuarios,
+ * validación de credenciales y manejo de códigos de verificación.
+ * </p>
+ */
 @Service
 public class UsuarioService {
 
@@ -33,18 +39,42 @@ public class UsuarioService {
 
 	private final Map<String, VerificationCode> verificationCodes = new HashMap<>();
 
+	/**
+	 * Constructor por defecto.
+	 */
 	public UsuarioService() {
 
 	}
 
+	/**
+	 * Cuenta el número total de usuarios en el sistema.
+	 * 
+	 * @return Número total de usuarios
+	 */
 	public long count() {
 		return usuarioRepository.count();
 	}
 
+	/**
+	 * Verifica si un usuario existe por su ID.
+	 * 
+	 * @param id ID del usuario a verificar
+	 * @return true si el usuario existe, false en caso contrario
+	 */
 	public boolean exist(Integer id) {
 		return usuarioRepository.existsById(id);
 	}
 
+	/**
+	 * Crea un nuevo usuario en el sistema.
+	 * 
+	 * @param data DTO con los datos del nuevo usuario
+	 * @return Código de resultado:
+	 *         <ul>
+	 *         <li>0: Éxito</li>
+	 *         <li>1: Nombre de usuario ya existe</li>
+	 *         </ul>
+	 */
 	public int create(UsuarioDTO data) {
 		Usuario entity = modelMapper.map(data, Usuario.class);
 		if (findUsernameAlreadyTaken(entity.getUsername())) {
@@ -59,6 +89,11 @@ public class UsuarioService {
 		}
 	}
 
+	/**
+	 * Obtiene todos los usuarios del sistema.
+	 * 
+	 * @return Lista de DTOs de usuarios
+	 */
 	@Transactional(readOnly = true)
 	public List<UsuarioDTO> getAll() {
 		List<Usuario> usuarios = usuarioRepository.findAll();
@@ -69,6 +104,16 @@ public class UsuarioService {
 		return usuarios.stream().map(u -> modelMapper.map(u, UsuarioDTO.class)).collect(Collectors.toList());
 	}
 
+	/**
+	 * Elimina un usuario por su ID.
+	 * 
+	 * @param id ID del usuario a eliminar
+	 * @return Código de resultado:
+	 *         <ul>
+	 *         <li>0: Éxito</li>
+	 *         <li>1: Usuario no encontrado</li>
+	 *         </ul>
+	 */
 	public int deleteById(Integer id) {
 		Optional<Usuario> found = usuarioRepository.findById(id);
 		if (found.isPresent()) {
@@ -79,6 +124,16 @@ public class UsuarioService {
 		}
 	}
 
+	/**
+	 * Elimina un usuario por su nombre de usuario.
+	 * 
+	 * @param username Nombre de usuario a eliminar
+	 * @return Código de resultado:
+	 *         <ul>
+	 *         <li>0: Éxito</li>
+	 *         <li>1: Usuario no encontrado</li>
+	 *         </ul>
+	 */
 	public int deleteByUsername(String username) {
 		Optional<Usuario> found = usuarioRepository.findByUsername(username);
 		if (found.isPresent()) {
@@ -89,6 +144,18 @@ public class UsuarioService {
 		}
 	}
 
+	/**
+	 * Actualiza un usuario existente.
+	 * 
+	 * @param id      ID del usuario a actualizar
+	 * @param newData DTO con los nuevos datos
+	 * @return Código de resultado:
+	 *         <ul>
+	 *         <li>0: Éxito</li>
+	 *         <li>1: Nombre de usuario ya existe</li>
+	 *         <li>2: Usuario no encontrado</li>
+	 *         </ul>
+	 */
 	public int updateById(Integer id, UsuarioDTO newData) {
 		Optional<Usuario> found = usuarioRepository.findById(id);
 		if (found.isEmpty()) {
@@ -110,6 +177,12 @@ public class UsuarioService {
 		return 0;
 	}
 
+	/**
+	 * Obtiene un usuario por su ID.
+	 * 
+	 * @param id ID del usuario a buscar
+	 * @return DTO del usuario o null si no se encuentra
+	 */
 	@Transactional(readOnly = true)
 	public UsuarioDTO getById(Integer id) {
 		Optional<Usuario> usuario = usuarioRepository.findById(id);
@@ -120,11 +193,28 @@ public class UsuarioService {
 		return null;
 	}
 
+	/**
+	 * Verifica si un nombre de usuario ya está en uso.
+	 * 
+	 * @param username Nombre de usuario a verificar
+	 * @return true si el nombre ya está en uso, false en caso contrario
+	 */
 	public boolean findUsernameAlreadyTaken(String username) {
 		Optional<Usuario> found = usuarioRepository.findByUsername(username);
 		return found.isPresent();
 	}
 
+	/**
+	 * Valida las credenciales de un usuario.
+	 * 
+	 * @param username Nombre de usuario
+	 * @param password Contraseña
+	 * @return Código de resultado:
+	 *         <ul>
+	 *         <li>0: Credenciales válidas</li>
+	 *         <li>1: Credenciales inválidas</li>
+	 *         </ul>
+	 */
 	public int validateCredentials(String username, String password) {
 		Optional<Usuario> userOpt = usuarioRepository.findByUsername(username);
 		if (userOpt.isPresent()) {
@@ -136,10 +226,23 @@ public class UsuarioService {
 		return 1;
 	}
 
+	/**
+	 * Almacena un código de verificación para un correo electrónico.
+	 * 
+	 * @param email Correo electrónico del usuario
+	 * @param code  Código de verificación
+	 */
 	public void saveVerificationCode(String email, String code) {
 		verificationCodes.put(email, new VerificationCode(code, LocalDateTime.now().plusMinutes(10)));
 	}
 
+	/**
+	 * Valida un código de verificación para un correo electrónico.
+	 * 
+	 * @param email     Correo electrónico del usuario
+	 * @param inputCode Código ingresado por el usuario
+	 * @return true si el código es válido, false en caso contrario
+	 */
 	public boolean validateVerificationCode(String email, String inputCode) {
 		VerificationCode storedCode = verificationCodes.get(email);
 		if (storedCode == null) {
@@ -156,6 +259,10 @@ public class UsuarioService {
 		return false;
 	}
 
+	/**
+	 * Clase interna para representar un código de verificación con su tiempo de
+	 * expiración.
+	 */
 	private static class VerificationCode {
 		private final String code;
 		private final LocalDateTime expirationTime;

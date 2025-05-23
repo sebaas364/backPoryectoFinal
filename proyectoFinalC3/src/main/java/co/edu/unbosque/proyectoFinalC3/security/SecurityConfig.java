@@ -1,7 +1,6 @@
 package co.edu.unbosque.proyectoFinalC3.security;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +20,19 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Configuración principal de seguridad para la aplicación Spring Boot.
+ * <p>
+ * Esta clase define la política de seguridad global, incluyendo:
+ * <ul>
+ *   <li>Configuración de CORS</li>
+ *   <li>Reglas de autorización para endpoints</li>
+ *   <li>Autenticación basada en JWT</li>
+ *   <li>Administración de sesiones sin estado (stateless)</li>
+ *   <li>Configuración del codificador de contraseñas</li>
+ * </ul>
+ * </p>
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -31,10 +43,19 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
     
+    /**
+     * Constructor por defecto.
+     */
     public SecurityConfig() {
-        
     }
     
+    /**
+     * Configura la cadena principal de filtros de seguridad.
+     * 
+     * @param http Configurador de seguridad HTTP
+     * @return Cadena de filtros configurada
+     * @throws Exception Si ocurre un error en la configuración
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -54,6 +75,11 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Configuración CORS para permitir solicitudes desde diferentes orígenes.
+     * 
+     * @return Fuente de configuración CORS
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -68,6 +94,11 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * Proveedor de autenticación que usa DAO.
+     * 
+     * @return Proveedor de autenticación configurado
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -76,13 +107,26 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    /**
+     * Administrador de autenticación.
+     * 
+     * @param config Configuración de autenticación
+     * @return Administrador de autenticación
+     * @throws Exception Si ocurre un error en la configuración
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * Codificador de contraseñas usando BCrypt.
+     * 
+     * @return Instancia del codificador BCrypt
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    
 }

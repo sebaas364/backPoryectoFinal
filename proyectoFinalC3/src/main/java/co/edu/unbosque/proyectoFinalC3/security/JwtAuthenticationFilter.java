@@ -15,6 +15,17 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * Filtro de autenticación JWT que intercepta cada solicitud HTTP.
+ * <p>
+ * Este filtro se ejecuta una vez por cada solicitud y se encarga de:
+ * <ul>
+ *   <li>Extraer el token JWT del encabezado Authorization</li>
+ *   <li>Validar el token</li>
+ *   <li>Establecer la autenticación en el contexto de seguridad de Spring</li>
+ * </ul>
+ * </p>
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -24,21 +35,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Autowired
 	private UserDetailsService userDetailsService;
 
+    /**
+     * Constructor por defecto.
+     */
 	public JwtAuthenticationFilter() {
 		
 	}
 	
+    /**
+     * Método principal que implementa la lógica del filtro.
+     * 
+     * @param request La solicitud HTTP entrante
+     * @param response La respuesta HTTP
+     * @param filterChain La cadena de filtros a ejecutar
+     * @throws ServletException Si ocurre un error en el servlet
+     * @throws IOException Si ocurre un error de entrada/salida
+     */
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		logger.info("JwtAuthenticationFilter: entrando en el filtro...");
-
 		final String authorizationHeader = request.getHeader("Authorization");
-
 	    String username = null;
 	    String jwt = null;
-		logger.info("JwtAuthenticationFilter" + authorizationHeader);
-
 		if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
 			jwt = authorizationHeader.substring(7);
 			try {
@@ -61,7 +80,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				}
 			}
 		}
-		logger.info("Acabado");
+		logger.info("Finalizado");
 		filterChain.doFilter(request, response);
 	}
+	
 }

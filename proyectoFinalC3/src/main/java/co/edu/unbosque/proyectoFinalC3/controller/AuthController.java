@@ -21,6 +21,17 @@ import co.edu.unbosque.proyectoFinalC3.security.JwtUtil;
 import co.edu.unbosque.proyectoFinalC3.service.EmailVerificationService;
 import co.edu.unbosque.proyectoFinalC3.service.UsuarioService;
 
+/**
+ * Controlador para manejar autenticación y registro de usuarios.
+ * <p>
+ * Proporciona endpoints para:
+ * <ul>
+ * <li>Inicio de sesión con generación de JWT</li>
+ * <li>Registro de nuevos usuarios</li>
+ * <li>Verificación de correo electrónico</li>
+ * </ul>
+ * </p>
+ */
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = { "*" })
@@ -38,6 +49,13 @@ public class AuthController {
 	@Autowired
 	private EmailVerificationService emailService;
 
+	/**
+	 * Endpoint para autenticación de usuarios.
+	 * 
+	 * @param loginRequest DTO con credenciales de usuario
+	 * @return ResponseEntity con JWT y rol del usuario si es exitoso, o mensaje de
+	 *         error en caso contrario
+	 */
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody UsuarioDTO loginRequest) {
 		try {
@@ -58,6 +76,12 @@ public class AuthController {
 		}
 	}
 
+	/**
+	 * Endpoint para registro de nuevos usuarios.
+	 * 
+	 * @param registerRequest DTO con datos del nuevo usuario
+	 * @return ResponseEntity con mensaje de éxito o error
+	 */
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@RequestBody UsuarioDTO registerRequest) {
 		int result = usuarioService.create(registerRequest);
@@ -68,6 +92,12 @@ public class AuthController {
 		}
 	}
 
+	/**
+	 * Endpoint para enviar código de verificación por correo.
+	 * 
+	 * @param email Correo electrónico del usuario
+	 * @return ResponseEntity con resultado de la operación
+	 */
 	@PostMapping("/send-verification")
 	public ResponseEntity<?> sendVerificationCode(@RequestParam String email) {
 		try {
@@ -80,6 +110,13 @@ public class AuthController {
 		}
 	}
 
+	/**
+	 * Endpoint para validar código de verificación.
+	 * 
+	 * @param email Correo electrónico del usuario
+	 * @param code  Código de verificación
+	 * @return ResponseEntity con resultado de la validación
+	 */
 	@PostMapping("/verify-code")
 	public ResponseEntity<?> verifyCode(@RequestParam String email, @RequestParam String code) {
 
@@ -90,6 +127,9 @@ public class AuthController {
 		}
 	}
 
+	/**
+	 * Clase interna para la respuesta de autenticación.
+	 */
 	private static class AuthResponse {
 
 		private final String token;
